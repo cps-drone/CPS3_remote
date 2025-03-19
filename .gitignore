@@ -1,0 +1,9 @@
+.pio/
+.pio/**
+.vscode/
+.vscode/**
+test/
+test/**
+lib/
+lib/**
+
