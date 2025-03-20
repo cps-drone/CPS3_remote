@@ -6,4 +6,5 @@ test/
 test/**
 lib/
 lib/**
-
+.DS_Store
+.code-workspace
