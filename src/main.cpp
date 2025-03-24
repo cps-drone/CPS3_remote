@@ -48,7 +48,7 @@ MotorsSpeed motors_speed;
 
 //time counter variables for refreshing stuff at intervals:
 unsigned long previousMillis = 0; // Stores the last time the LED was updated
-const long interval = 250;
+const long interval = 500; // Interval at which to blink (milliseconds)
 
 //Sensor value variable declarations:
 int StickLeftH_value, StickLeftV_value, StickRightH_value, StickRightV_value;
@@ -57,14 +57,20 @@ int StickLeftH_value, StickLeftV_value, StickRightH_value, StickRightV_value;
 bool SwitchRight_state = LOW; // This determines whether the drone is armed or disarmed
 bool SwitchLeft_state = LOW;  // This determines if the speed mode is 50% or 100%
 
-bool flight_mode = DISARMED;
+volatile bool flight_mode = DISARMED;
+volatile bool sendDataFlag = false;
+
 bool speed_mode = LOW;
 
-//Drone and remote voltages and temperature variables:
-float BatteryVoltage, DroneVoltage1, DroneVoltage2, DroneTemperature;
+//Battery voltage variable declaration:
+float BatteryVoltage = 0.00;
+float DroneVoltage = 0.00;
 
-void receive_measurement_data();
-void update_display();
+
+//output motor value declaration:
+int SpeedL = 0;
+int SpeedR = 0;
+int SpeedA = 0;
 
 //Function for updating the display:
 void update_display() {
@@ -151,8 +157,8 @@ void setup() {
 
 void loop() {
 
-  unsigned long currentMillis = millis(); // Get the current "time" (actually the number of milliseconds since the program started)
-  
+  unsigned long currentTime = millis(); // Get the current "time"
+
   //Display code:
   update_display();
 
@@ -170,9 +176,8 @@ void loop() {
   speed_mode = SwitchLeft_state;
 
   //read the battery voltage and save it to proper variable, but only two times per second
-  if (currentMillis - previousMillis >= interval) {
-    // Save the last time you blinked the LED
-    previousMillis = currentMillis;
+  if (currentTime - previousTime >= interval) {
+    previousTime = currentTime;
     BatteryVoltage = map(analogRead(BatterySensor), 0, 1023, 0, 500);
     BatteryVoltage = BatteryVoltage/100;
   }
@@ -198,13 +203,13 @@ void loop() {
     Serial.print("\nd");
     Serial.flush();
 
-    while (flight_mode == DISARMED) {      // While the drone is disarmed we are only reading the battery voltage from the drone and displaying it
-      update_display();
-      digitalWrite(MasterEnable, LOW);
+    digitalWrite(MasterEnable, LOW);
 
-      //Update the flight modes again, eventually a function for this is required
-      flight_mode = digitalRead(SwitchRight);
-      speed_mode = digitalRead(SwitchLeft);
-      }
+    receive_measurement_data();
+    update_display();
+    delay(50);
+    //Update the flight modes again, eventually a function for this is required
+    // flight_mode = digitalRead(SwitchRight);
+    // speed_mode = digitalRead(SwitchLeft);
   }
 }
