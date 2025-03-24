@@ -3,7 +3,8 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-#include "logo.h"
+#include "Logo.h"
+#include "Motors_Speed.h"
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 32 // OLED display height, in pixels
@@ -11,6 +12,7 @@
 #define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
+MotorsSpeed motors_speed;
 //Joystick sticks:
 #define StickLeftH A2
 #define StickLeftV A1
@@ -44,10 +46,6 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 //Buzzer
 #define Buzzer 13
 
-//Motor speed limits
-#define MAX_SPEED 140
-#define MIN_SPEED 40
-
 //time counter variables for refreshing stuff at intervals:
 unsigned long previousMillis = 0; // Stores the last time the LED was updated
 const long interval = 250;
@@ -65,11 +63,12 @@ bool speed_mode = LOW;
 //Drone and remote voltages and temperature variables:
 float BatteryVoltage, DroneVoltage1, DroneVoltage2, DroneTemperature;
 
-//Output motor value variables:
-int SpeedL, SpeedR, SpeedA;
+void receive_measurement_data();
+void update_display();
 
 //Function for updating the display:
 void update_display() {
+  receive_measurement_data();
   display.clearDisplay();
   display.setTextSize(2);             // Normal 1:1 pixel scale
   display.setTextColor(SSD1306_WHITE);        // Draw white text
@@ -93,6 +92,31 @@ void update_display() {
   display.display();
 }
   
+//Function to receive measurement data
+void receive_measurement_data() {
+    if (Serial.available() > 0) {
+        String data = Serial.readStringUntil('\n');
+
+        //Looking for the indexes of the battery voltage and temperature data
+        int bat1sIndex = data.indexOf("BAT1S");
+        int bat2sIndex = data.indexOf("BAT2S");
+        int tempIndex = data.indexOf("TEMP");
+
+        //Confirm that all the data is present
+        if (bat1sIndex != -1 && bat2sIndex != -1 && tempIndex != -1) {
+            //Extract the values from the data
+            String bat1sValue = data.substring(bat1sIndex + 5, bat2sIndex);
+            String bat2sValue = data.substring(bat2sIndex + 5, tempIndex);  
+            String tempValue = data.substring(tempIndex + 4);             
+
+            //Convert the values to floats
+            DroneVoltage1 = bat1sValue.toFloat();
+            DroneVoltage2 = bat2sValue.toFloat();
+            DroneTemperature = tempValue.toFloat();
+        }
+    }
+}
+
 void setup() {
   pinMode(SwitchRight, INPUT);
   pinMode(SwitchLeft, INPUT);
@@ -153,130 +177,34 @@ void loop() {
     BatteryVoltage = BatteryVoltage/100;
   }
 
-  //Figure out the proper motor speeds for the drone
-  SpeedA = StickLeftV_value;
-  
-  // Calculate motor speeds based on joystick inputs
-  if(StickRightV_value > 5 && StickRightV_value <= 45) { //Slowly moving forward
-    if(StickLeftH_value < -5){ //Turning left
-      StickLeftH_value = -StickLeftH_value;
-      SpeedL = (StickRightV_value - 2 * StickLeftH_value) / 3;
-      SpeedR = (StickRightV_value + 2 * StickLeftH_value) / 3;
-    }
-    else if (StickLeftH_value > 5) { //Turning right
-      SpeedL = (StickRightV_value + 2 * StickLeftH_value) / 3;
-      SpeedR = (StickRightV_value - 2 * StickLeftH_value) / 3;
-    }
-    else{ //No turning (dead zone)
-      SpeedL = StickRightV_value;
-      SpeedR = StickRightV_value;
-    }
-  } else if(StickRightV_value > 45) { //Fast moving forward
-    if(StickLeftH_value < -5){ //Turning left
-      StickLeftH_value = -StickLeftH_value;
-      SpeedL = (2 * StickRightV_value - StickLeftH_value) / 3;
-      SpeedR = (2 * StickRightV_value + StickLeftH_value) / 3;
-    }
-    else if (StickLeftH_value > 5) { //Turning right
-      SpeedL = (2 * StickRightV_value + StickLeftH_value) / 3;
-      SpeedR = (2 * StickRightV_value - StickLeftH_value) / 3;
-    }
-    else{ //No turning (dead zone)
-      SpeedL = StickRightV_value;
-      SpeedR = StickRightV_value;
-    }
-  } 
-  else if (StickRightV_value < -5 && StickRightV_value >= -45) { //Slowly moving backwards
-    if(StickLeftH_value < -5){ //Turning left
-      SpeedL = (StickRightV_value - 2 * StickLeftH_value) / 3;
-      SpeedR = (StickRightV_value + 2 * StickLeftH_value) / 3;
-    }
-    else if (StickLeftH_value > 5) { //Turning right
-      StickLeftH_value = -StickLeftH_value;
-      SpeedL = (StickRightV_value + 2 * StickLeftH_value) / 3;
-      SpeedR = (StickRightV_value - 2 * StickLeftH_value) / 3;
-    }
-    else{ //No turning (dead zone)
-      SpeedL = StickRightV_value;
-      SpeedR = StickRightV_value;
-    }
-  } 
-  else if (StickRightV_value < -45) { //Fast moving backwards
-    if(StickLeftH_value < -5){ //Turning left
-      SpeedL = (2 * StickRightV_value - StickLeftH_value) / 3;
-      SpeedR = (2 * StickRightV_value + StickLeftH_value) / 3;
-    }
-    else if (StickLeftH_value > 5) { //Turning right
-      StickLeftH_value = -StickLeftH_value;
-      SpeedL = (2 * StickRightV_value + StickLeftH_value) / 3;
-      SpeedR = (2 * StickRightV_value - StickLeftH_value) / 3;
-    }
-    else{ //No turning (dead zone)
-      SpeedL = StickRightV_value;
-      SpeedR = StickRightV_value;
-    }
-  } 
-  else if(StickRightV_value >= -5 && StickRightV_value <= 5) { //No forward or backward movement
-    if(StickLeftH_value < -5){ //Turning left
-      StickLeftH_value = -StickLeftH_value;
-      SpeedL = -StickLeftH_value;
-      SpeedR = StickLeftH_value;
-    }
-    else if (StickLeftH_value > 5) { //Turning right
-      SpeedL = StickLeftH_value;
-      SpeedR = -StickLeftH_value;
-    }
-  }
-
-  // Limit the speeds if speed mode is set to LOW
-  if (speed_mode == LOW) {
-    SpeedA/=2;
-    SpeedL/=2;
-    SpeedR/=2;
-  }
-
-  SpeedL = map(SpeedL, -90, 90, MIN_SPEED, MAX_SPEED);
-  SpeedR = map(SpeedR, -90, 90, MIN_SPEED, MAX_SPEED);
-  SpeedA = map(SpeedA, -90, 90, MIN_SPEED, MAX_SPEED);
+  //Set the speeds of the motors based on the joystick values
+  motors_speed.setSpeedA(StickLeftV_value);
+  motors_speed.setSpeedsLR(StickLeftH_value, StickRightV_value);
+  speed_mode == LOW ? motors_speed.setSlowMode() : (void)0;
+  motors_speed.mapSpeeds();
 
   //Send the joystick outputs to the drone if it's armed
   if (flight_mode == ARMED) { 
     digitalWrite(MasterEnable, HIGH);
-    Serial.print(String("\nL") + SpeedL + "R" + SpeedR + "A" + SpeedA);
-    
+    Serial.print(String("\nL") + motors_speed.getSpeedL() + "R" + motors_speed.getSpeedR() + "A" + motors_speed.getSpeedA());
     Serial.flush();
 
     // to make sure that after sending data, the data is equal to 0
-    SpeedL = 0;
-    SpeedR = 0;
-    SpeedA = 0;
+    motors_speed.setZeroSpeed();
     }
+
   else {
     digitalWrite(MasterEnable, HIGH);
     Serial.print("\nd");
     Serial.flush();
 
     while (flight_mode == DISARMED) {      // While the drone is disarmed we are only reading the battery voltage from the drone and displaying it
-    
       update_display();
       digitalWrite(MasterEnable, LOW);
 
       //Update the flight modes again, eventually a function for this is required
       flight_mode = digitalRead(SwitchRight);
       speed_mode = digitalRead(SwitchLeft);
-      
-      if (Serial.available() > 0) {
-          String data;
-          data = Serial.readStringUntil('\n');
-
-          // Now, we need to get this data displayed on the screen, for now I'll write it to a terminal
-          int firstComma = data.indexOf(',');
-          int secondComma = data.indexOf(',', firstComma + 1);
-
-          DroneVoltage1 = data.substring(0, firstComma).toFloat();
-          DroneVoltage2 = data.substring(firstComma + 1, secondComma).toFloat();
-          DroneTemperature = data.substring(secondComma + 1).toFloat();        
-          }
       }
   }
 }
