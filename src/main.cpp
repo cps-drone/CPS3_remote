@@ -6,51 +6,13 @@
 #include <PWM.h>
 #include "Logo.h"
 #include "Motors_Speed.h"
+#include "Display_OLED.h"
+#include "Definitions.h"
+#include "Measurement.h"
 
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 32 // OLED display height, in pixels
-#define OLED_RESET     4 // Reset pin # (or -1 if sharing Arduino reset pin)
-#define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET); //OLED display object
 
 MotorsSpeed motors_speed; //Motors speed object
-
-//Joystick sticks:
-#define StickLeftH A2
-#define StickLeftV A1
-//StickRightH is not used, A3 and A6 are inverted due to position of the right joystick
-#define StickRightH A3 
-#define StickRightV A6
-
-//Joystick buttons:
-#define StickLeftB 11
-#define StickRightB 12
-
-//Remote battery voltage measurement:
-#define BatterySensor A0
-
-//Toggle switches:
-#define SwitchRight 9
-#define SwitchLeft 2 //NEED TO BE CHANGED TO 13 FOR THE FINAL VERSION
-
-//RS485 enable pins:
-#define MasterEnable 3 //NEED TO BE CHANGED TO 2 FOR THE FINAL VERSION
-
-//Modes definitions
-#define ARMED HIGH
-#define DISARMED LOW
-
-//Buttons module definitions
-#define Button1 5
-#define Button2 6
-#define Button3 7
-#define Button4 8
-#define Button5 10
-
-//Buzzer
-//NEED TO BE CHANGED TO 3 FOR THE FINAL VERSION
-// #define Buzzer 13 // WRONG PWM PIN 
-// #define BuzzerPWMFrequency 2900
 
 //time counter variables for refreshing stuff at intervals:
 unsigned long previousTime = 0; //Timer variables
@@ -72,17 +34,12 @@ int RemoteBatteryPercent = 0;
 bool SwitchRight_state = LOW; // This determines whether the drone is armed or disarmed
 bool SwitchLeft_state = LOW;  // This determines if the speed mode is 50% or 100%
 
-volatile bool flight_mode = DISARMED;
-
 bool speed_mode = LOW;
+volatile bool flight_mode = DISARMED;
 
 //Battery voltage variable declaration:
 float BatteryVoltage = 0.00;
 float DroneVoltage = 0.00;
-
-bool isVoltagesMenuActive = false;
-bool isTemperatureMenuActive = false;
-bool isTotalVoltageMenuActive = false; 
 
 //output motor value declaration:
 int SpeedL = 0;
@@ -108,50 +65,6 @@ void calculate_batteries_percentage() {
     RemoteBatteryPercent = 0;
   }
 }
-
-//Function for updating the display:
-void update_display() {
-  receive_measurement_data();
-  display.clearDisplay();
-  display.setTextSize(2);             // Normal 1:1 pixel scale
-  display.setTextColor(SSD1306_WHITE);        // Draw white text
-  display.setCursor(0,0);             // Start at top-left corner
-
-  //Display mode:
-  display.setTextSize(2); 
-  (flight_mode) == ARMED ? display.println(F("   ARMED")) : display.println(F(" DISARMED"));
-
-  display.setTextSize(1); 
-  //Display speed:
-  if(speed_mode == LOW && flight_mode == ARMED){
-    display.println(F("      Speed:LOW"));
-  }
-  else if(speed_mode == HIGH && flight_mode == ARMED){
-    display.println(F("     Speed: HIGH"));
-  }
-  else{}
-  //Display remote battery state in %
-  if(flight_mode == ARMED){
-    display.println(String("Remote battery: ") + RemoteBatteryPercent + "%");
-  }
-  //Display drone battery cells voltages
-  if(flight_mode == DISARMED && digitalRead(Button1) == LOW) {
-    display.println(String("  1S voltage: ") + DroneVoltage1 + "V");
-    display.print(String("  2S voltage: ") + DroneVoltage2 + "V ");
-  }
-  //Display drone temperature in Celsius
-  if(flight_mode == DISARMED && digitalRead(Button2) == LOW) {
-    display.println(" Drone temperature");
-    display.println(String("       ") + DroneTemperature + "C");
-  }
-  //Display drone total battery voltage and state in %
-  if (flight_mode == DISARMED && digitalRead(Button2) == HIGH && digitalRead(Button1) == HIGH){
-    display.println(String("Drone voltage: ") + DroneVoltageTotal + "V");
-    display.println(String("  Drone state: ") + DroneBatteryPercent + "%");
-  }
-
-  display.display(); //Push the data to the RAM of the display
-} 
   
 //Function to receive measurement data
 void receive_measurement_data() {
@@ -197,18 +110,7 @@ void setup() {
   pinMode(Button5, INPUT);
 
   //Display initialization
-  if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
-    for(;;); // Don't proceed, loop forever
-  }
-  display.clearDisplay();
-  //The most beautiful CPS logo
-  display.drawBitmap(0, 0, cps3_logo, 128, 32, SSD1306_WHITE);
-
-  display.display();
-  delay(5000);
-  display.clearDisplay();  //Clear the display after showing the logo
-  display.display(); //Ensure the display is updated
-
+  init_display();
   Serial.begin(115200); //Set the baud rate for the serial communication
 }
 

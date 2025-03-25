@@ -1,0 +1,26 @@
+#ifndef DISPLAY_OLED_H
+#define DISPLAY_OLED_H
+
+#include <Arduino.h>
+#include <Adafruit_SSD1306.h>
+#include "Logo.h"
+#include "Definitions.h"
+
+extern Adafruit_SSD1306 display;
+
+//Display variables
+extern volatile bool flight_mode;
+extern bool speed_mode;
+extern float DroneVoltage1;
+extern float DroneVoltage2;
+extern float DroneVoltageTotal;
+extern float DroneTemperature;
+extern int RemoteBatteryPercent;
+extern int DroneBatteryPercent;
+
+extern void receive_measurement_data();
+
+void init_display();
+void update_display();
+
+#endif

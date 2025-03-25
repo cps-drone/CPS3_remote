@@ -43,4 +43,4 @@ public:
     int getSpeedR() const { return SpeedR; }
 };
 
-#endif // MOTORS_SPEED_H
+#endif
