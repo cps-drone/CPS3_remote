@@ -6,3 +6,9 @@ test/
 test/**
 .DS_Store
 .code-workspace
+lib/PWM/examples/
+lib/PWM/examples/**
+lib/PWM/*.json
+lib/PWM/*.md
+lib/PWM/*.properties
+lib/PWM/*.txt
