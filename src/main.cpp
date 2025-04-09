@@ -146,7 +146,7 @@ void setup() {
   display.clearDisplay();
   display.display(); // Ensure the display is updated
 
-  Serial.begin(115200);
+  Serial.begin(9600);
 }
 
 void loop() {

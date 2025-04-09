@@ -1,0 +1,13 @@
+{
+  "name": "PWM",
+  "version": "1.0.0",
+  "description": "PWM library for Arduino",
+  "keywords": "pwm, timer",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-repo-url"
+  },
+  "frameworks": "arduino",
+  "platforms": "atmelavr"
+}
+
