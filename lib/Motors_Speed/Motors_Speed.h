@@ -37,6 +37,11 @@ public:
     //Method to map speeds to motor range
     void mapSpeeds();
 
+    //Method to invert motor direction
+    void InvertMotorAdirection();
+    void InvertMotorLdirection();
+    void InvertMotorRdirection();
+
     //For future  development if needed
     int getSpeedA() const { return SpeedA; }
     int getSpeedL() const { return SpeedL; }

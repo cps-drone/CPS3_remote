@@ -67,7 +67,8 @@ void MotorsSpeed::setSpeedsLR(int StickLeftH_value, int StickRightV_value) {
 
 void MotorsSpeed::setSlowMode() {
     // Limit the speeds if speed mode is set to LOW
-    SpeedA /= 2;
+    SpeedA *= 3;
+    SpeedA /= 4;
     SpeedL /= 2;
     SpeedR /= 2;
 }
@@ -83,4 +84,16 @@ void MotorsSpeed::setZeroSpeed(){
     SpeedA = 0;
     SpeedL = 0;
     SpeedR = 0;
+}
+
+void MotorsSpeed::InvertMotorAdirection(){
+    SpeedA = 180 - SpeedA; // Invert the speed
+}
+
+void MotorsSpeed::InvertMotorLdirection(){
+    SpeedL = 180 - SpeedL; // Invert the speed
+}
+
+void MotorsSpeed::InvertMotorRdirection(){
+    SpeedR = 180 - SpeedR; // Invert the speed
 }

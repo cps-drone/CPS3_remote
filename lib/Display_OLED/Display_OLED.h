@@ -5,6 +5,7 @@
 #include <Adafruit_SSD1306.h>
 #include "Logo.h"
 #include "Definitions.h"
+#include "Motors_Speed.h"
 
 extern Adafruit_SSD1306 display;
 
@@ -17,6 +18,13 @@ extern float DroneVoltageTotal;
 extern float DroneTemperature;
 extern int RemoteBatteryPercent;
 extern int DroneBatteryPercent;
+extern int StickRightH_value;
+extern int StickRightV_value;
+extern int StickLeftH_value;
+extern int StickLeftV_value;
+extern bool motorDirectionA;
+extern bool motorDirectionL;
+extern bool motorDirectionR;
 
 extern void receive_measurement_data();
 

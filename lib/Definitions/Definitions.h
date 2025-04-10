@@ -7,6 +7,11 @@
 #define OLED_RESET     4 // Reset pin # (or -1 if sharing Arduino reset pin)
 #define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
 
+//EEPROM definitions:
+#define EEPROM_ADDR_MOTOR_A 0
+#define EEPROM_ADDR_MOTOR_L 1
+#define EEPROM_ADDR_MOTOR_R 2
+
 //Joystick sticks:
 #define StickLeftH A2
 #define StickLeftV A1
@@ -15,8 +20,8 @@
 #define StickRightV A6
 
 //Joystick buttons:
-#define StickLeftB 11
-#define StickRightB 12
+#define StickLeftB 12
+#define StickRightB 11
 
 //Remote battery voltage measurement:
 #define BatterySensor A0

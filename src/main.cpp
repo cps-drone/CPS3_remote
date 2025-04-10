@@ -4,6 +4,7 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <PWM.h>
+#include <EEPROM.h>
 #include "Logo.h"
 #include "Motors_Speed.h"
 #include "Display_OLED.h"
@@ -46,6 +47,10 @@ int SpeedL = 0;
 int SpeedR = 0;
 int SpeedA = 0;
 
+bool motorDirectionA = false;
+bool motorDirectionL = false;
+bool motorDirectionR = false;
+
 //Function prototypes:
 void update_display();
 void receive_measurement_data();
@@ -61,9 +66,17 @@ void calculate_batteries_percentage() {
   if (DroneBatteryPercent < 0) {
     DroneBatteryPercent = 0;
   }
+  else if (DroneBatteryPercent > 100) {
+    DroneBatteryPercent = 100;
+  }
   if (RemoteBatteryPercent < 0) {
     RemoteBatteryPercent = 0;
   }
+  else if (RemoteBatteryPercent > 100) {
+    RemoteBatteryPercent = 100;
+  }
+  
+  
 }
   
 //Function to receive measurement data
@@ -96,6 +109,10 @@ void setup() {
   // InitTimersSafe();
   // SetPinFrequencySafe(Buzzer, BuzzerPWMFrequency);
 
+  motorDirectionA = EEPROM.read(EEPROM_ADDR_MOTOR_A);
+  motorDirectionL = EEPROM.read(EEPROM_ADDR_MOTOR_L);
+  motorDirectionR = EEPROM.read(EEPROM_ADDR_MOTOR_R);
+
   //Set the pins as inputs or outputs
   pinMode(SwitchRight, INPUT);
   pinMode(SwitchLeft, INPUT);
@@ -111,7 +128,7 @@ void setup() {
 
   //Display initialization
   init_display();
-  Serial.begin(115200); //Set the baud rate for the serial communication
+  Serial.begin(9600); //Set the baud rate for the serial communication
 }
 
 void loop() {
@@ -140,8 +157,22 @@ void loop() {
   speed_mode = SwitchLeft_state;
 
   //Set the speeds of the motors based on the joystick values
-  motors_speed.setSpeedA(StickLeftV_value);
+  if(motorDirectionA == true){
+    motors_speed.InvertMotorAdirection();
+  }
+  else{
+    motors_speed.setSpeedA(StickLeftV_value);
+  }
+
+  
   motors_speed.setSpeedsLR(StickLeftH_value, StickRightV_value);
+  if(motorDirectionL == true){
+    motors_speed.InvertMotorLdirection();
+  }
+  if(motorDirectionR == true){
+    motors_speed.InvertMotorRdirection();
+  }
+
   speed_mode == LOW ? motors_speed.setSlowMode() : (void)0;
   motors_speed.mapSpeeds();
 
