@@ -6,6 +6,8 @@
 #include "Logo.h"
 #include "Definitions.h"
 #include "Motors_Speed.h"
+#include <EEPROM.h>
+#include "Buzzer.h"
 
 extern Adafruit_SSD1306 display;
 
@@ -25,6 +27,8 @@ extern int StickLeftV_value;
 extern bool motorDirectionA;
 extern bool motorDirectionL;
 extern bool motorDirectionR;
+extern bool connectionFlag;
+extern uint8_t connectionDisplayCtr;
 
 extern void receive_measurement_data();
 

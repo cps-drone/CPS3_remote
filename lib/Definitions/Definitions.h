@@ -28,10 +28,10 @@
 
 //Toggle switches:
 #define SwitchRight 9
-#define SwitchLeft 2 //NEED TO BE CHANGED TO 13 FOR THE FINAL VERSION
+#define SwitchLeft 13
 
 //RS485 enable pins:
-#define MasterEnable 3 //NEED TO BE CHANGED TO 2 FOR THE FINAL VERSION
+#define MasterEnable 2
 
 //Modes definitions
 #define ARMED HIGH
@@ -45,8 +45,7 @@
 #define Button5 10
 
 //Buzzer
-//NEED TO BE CHANGED TO 3 FOR THE FINAL VERSION
-// #define Buzzer 13 // WRONG PWM PIN 
-// #define BuzzerPWMFrequency 2900
+#define Buzzer 3 
+#define BuzzerPWMFrequency 2300
 
 #endif

@@ -67,8 +67,8 @@ void MotorsSpeed::setSpeedsLR(int StickLeftH_value, int StickRightV_value) {
 
 void MotorsSpeed::setSlowMode() {
     // Limit the speeds if speed mode is set to LOW
-    SpeedA *= 3;
     SpeedA /= 4;
+    SpeedA *= 3;
     SpeedL /= 2;
     SpeedR /= 2;
 }

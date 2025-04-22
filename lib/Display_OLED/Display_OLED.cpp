@@ -1,5 +1,4 @@
 #include "Display_OLED.h"
-#include <EEPROM.h>
 
 void init_display(){
     if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
@@ -12,7 +11,8 @@ void init_display(){
       display.display();
       delay(5000);
       display.clearDisplay();  //Clear the display after showing the logo
-      display.display(); //Ensure the display is updated 
+      display.display(); //Ensure the display is updated
+
 }
 
 void update_display() {
@@ -76,24 +76,31 @@ void update_display() {
     (flight_mode == ARMED) ? display.println(F("   ARMED")) : display.println(F(" DISARMED"));
 
     display.setTextSize(1);
-    if (speed_mode == LOW && flight_mode == ARMED) {
+    if (speed_mode == LOW && flight_mode == ARMED && connectionFlag == true && connectionDisplayCtr > 50) {
         display.println(F("      Speed:LOW"));
-    } else if (speed_mode == HIGH && flight_mode == ARMED) {
+    } else if (speed_mode == HIGH && flight_mode == ARMED && connectionFlag == true && connectionDisplayCtr > 50) {
         display.println(F("     Speed: HIGH"));
     }
+    else if (connectionFlag == false) {
+        display.println(F("     Connecting..."));
+    }
+    else if (connectionFlag == true && connectionDisplayCtr <= 50) {
+        display.println("      Connected");    
+    }
 
+    
     if (flight_mode == ARMED) {
         display.println(String("Remote battery: ") + RemoteBatteryPercent + "%");
     }
 
 
     if(flight_mode == DISARMED){
-        if (digitalRead(Button1) == LOW) {
+        if (digitalRead(Button1) == LOW && connectionFlag == true) {
             display.println(String("  1S voltage: ") + DroneVoltage1 + "V");
-            display.print(String("  2S voltage: ") + DroneVoltage2 + "V  ");
+            display.print(String("  2S voltage: ") + DroneVoltage2 + "V  ");  
         }
 
-        if (digitalRead(Button2) == LOW) {
+        if (digitalRead(Button2) == LOW && connectionFlag == true) {
             display.println(" Drone temperature");
             display.println(String("       ") + DroneTemperature + "C");
         }
@@ -101,25 +108,29 @@ void update_display() {
         // Display StickRightH_value and StickRightV_value if StickRightB is LOW
         if (digitalRead(StickRightB) == LOW) {
             display.setTextSize(1);
-            display.println(F("Stick Right Values:"));
-            display.print(F("H: "));
+            display.print(F("Right: "));
+            display.print(F("H= "));
             display.print(StickRightH_value);
-            display.print(F(", V: "));
+            display.print(F(", V= "));
             display.println(StickRightV_value);
+            display.println(F(""));
         }
         // Display StickLeftH_value and StickLeftV_value if StickLeftB is LOW
         if (digitalRead(StickLeftB) == LOW) {
             display.setTextSize(1);
-            display.println(F("Stick Left Values:"));
-            display.print(F("H: "));
+            display.print(F("Left: "));
+            display.print(F("H= "));
             display.print(StickLeftH_value);
-            display.print(F(", V: "));
+            display.print(F(", V= "));
             display.println(StickLeftV_value);
+            display.println(F(""));
         }
 
         else {
-            display.println(String("Drone voltage: ") + DroneVoltageTotal + "V");
-            display.println(String("  Drone state: ") + DroneBatteryPercent + "%");
+            if(connectionFlag == true){
+                display.println(String("Drone voltage: ") + DroneVoltageTotal + "V");
+                display.println(String("  Drone state: ") + DroneBatteryPercent + "%");
+            }
         }
     }
 
