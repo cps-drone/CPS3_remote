@@ -26,6 +26,10 @@ unsigned long previousSendTime = 0; //Timer variables
 const long sendingInterval = 100; //Time interval
 unsigned long currentSendTime = 100; //Current time
 
+unsigned long previousChangeTime = 0; //Timer variables
+const long changeInterval = 3000; //Time interval
+unsigned long currentChangeTime = 100; //Current time
+
 bool connectionFlag = false; //Flag to check if the drone is connected
 uint8_t connectionDisplayCtr = 0;
 bool firstMeasurementFlag = false; //Flag to check if the first measurement is received
@@ -85,8 +89,6 @@ void calculate_batteries_percentage() {
   else if (RemoteBatteryPercent > 100) {
     RemoteBatteryPercent = 100;
   }
-  
-  
 }
   
 //Function to receive measurement data
@@ -97,21 +99,26 @@ void receive_measurement_data() {
         //Looking for the indexes of the battery voltage and temperature data
         int bat1sIndex = data.indexOf("BAT1S");
         int bat2sIndex = data.indexOf("BAT2S");
-        int tempIndex = data.indexOf("TEMP");
 
         //Confirm that all the data is present
-        if (bat1sIndex != -1 && bat2sIndex != -1 && tempIndex != -1) {
+        if (bat1sIndex != -1 && bat2sIndex != -1) {
             //Extract the values from the data
-            String bat1sValue = data.substring(bat1sIndex + 5, bat2sIndex);
-            String bat2sValue = data.substring(bat2sIndex + 5, tempIndex);  
-            String tempValue = data.substring(tempIndex + 4);             
+            String bat1sValue = data.substring(bat1sIndex + 5, ',');
+            String bat2sValue = data.substring(bat2sIndex + 5, bat1sIndex);  
 
             //Convert the values to floats
             DroneVoltage1 = bat1sValue.toFloat();
             DroneVoltage2 = bat2sValue.toFloat();
-            DroneTemperature = tempValue.toFloat();
         }
     }
+}
+
+int getRandomNumberLR() {
+  return random(-88, 88);
+}
+
+int getRandomNumberA() {
+  return random(-88, 30);
 }
 
 void setup() {
@@ -187,7 +194,6 @@ void loop() {
   if (connectionDisplayCtr <= 50){
     connectionDisplayCtr++;
     receive_measurement_data();
-    DroneVoltageTotal = DroneVoltage1 + DroneVoltage2;
   }
 
   //Read the battery voltage and save it to proper variable every interval
@@ -199,6 +205,7 @@ void loop() {
   }
   currentTime = millis(); //Initialize the current time variable
   currentSendTime = millis(); //Initialize the current time variable
+  currentChangeTime = millis(); //Initialize the current time variable
 
   update_display();  //Display data on the OLED screen
 
@@ -212,22 +219,29 @@ void loop() {
   //Read the switches and map them to variables
   SwitchRight_state = digitalRead(SwitchRight);
   (firstMeasurementFlag == false) ? flight_mode = DISARMED : flight_mode = SwitchRight_state;
-  SwitchLeft_state = digitalRead(SwitchLeft);
-  speed_mode = SwitchLeft_state;
+  // SwitchLeft_state = digitalRead(SwitchLeft);
+  // speed_mode = SwitchLeft_state;
 
   //Send calculated motors speeds to the drone if it's armed
   if (flight_mode == ARMED) { 
 
+    if(currentChangeTime - previousChangeTime >= changeInterval) {
+      previousChangeTime = currentChangeTime;
+      motors_speed.setSpeedA(getRandomNumberA());
+      motors_speed.setSpeedsLR(getRandomNumberLR(), getRandomNumberLR());
+      motors_speed.mapSpeeds();
+    }
+
     if (currentSendTime - previousSendTime >= sendingInterval) {
 
-      motors_speed.setSpeedA(StickLeftV_value);
-      motors_speed.setSpeedsLR(StickLeftH_value, StickRightV_value);
+      // motors_speed.setSpeedA(StickLeftV_value);
+      // motors_speed.setSpeedsLR(StickLeftH_value, StickRightV_value);
 
-      if(speed_mode == LOW) {
-        motors_speed.setSlowMode();
-      }
+      // if(speed_mode == LOW) {
+      //   motors_speed.setSlowMode();
+      // }
 
-      motors_speed.mapSpeeds();
+      // motors_speed.mapSpeeds();
 
       // //Set the speeds of the motors based on the joystick values
       if(motorDirectionA == true){
