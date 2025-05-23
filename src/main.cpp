@@ -41,7 +41,6 @@ int StickLeftH_value, StickLeftV_value, StickRightH_value, StickRightV_value;
 float DroneVoltage1 = 0.00;
 float DroneVoltage2 = 0.00;
 float DroneVoltageTotal = 0.00;
-float DroneTemperature  = 0.00;
 int DroneBatteryPercent = 0;
 int RemoteBatteryPercent = 0;
 
@@ -64,6 +63,11 @@ int SpeedA = 0;
 bool motorDirectionA = false;
 bool motorDirectionL = false;
 bool motorDirectionR = false;
+
+
+int ran1 = 0;
+int ran2 = 0;
+
 
 //Function prototypes:
 void update_display();
@@ -104,7 +108,7 @@ void receive_measurement_data() {
         if (bat1sIndex != -1 && bat2sIndex != -1) {
             //Extract the values from the data
             String bat1sValue = data.substring(bat1sIndex + 5, ',');
-            String bat2sValue = data.substring(bat2sIndex + 5, bat1sIndex);  
+            String bat2sValue = data.substring(bat2sIndex + 5, ',');  
 
             //Convert the values to floats
             DroneVoltage1 = bat1sValue.toFloat();
@@ -210,10 +214,10 @@ void loop() {
   update_display();  //Display data on the OLED screen
 
   //Read the joystick values and map them to variables
-  StickLeftH_value = map(analogRead(StickLeftH), 0, 1023, -90, 90);
-  StickLeftV_value = map(analogRead(StickLeftV), 0, 1023, -90, 90);
-  StickRightH_value = map(analogRead(StickRightH), 0, 1023, -90, 90);
-  StickRightV_value = map(analogRead(StickRightV), 0, 1023, 90, -90);
+  // StickLeftH_value = map(analogRead(StickLeftH), 0, 1023, -90, 90);
+  // StickLeftV_value = map(analogRead(StickLeftV), 0, 1023, -90, 90);
+  // StickRightH_value = map(analogRead(StickRightH), 0, 1023, -90, 90);
+  // StickRightV_value = map(analogRead(StickRightV), 0, 1023, 90, -90);
   
 
   //Read the switches and map them to variables
@@ -225,10 +229,12 @@ void loop() {
   //Send calculated motors speeds to the drone if it's armed
   if (flight_mode == ARMED) { 
 
-    if(currentChangeTime - previousChangeTime >= changeInterval) {
+    if(currentChangeTime - previousChangeTime > changeInterval) {
       previousChangeTime = currentChangeTime;
       motors_speed.setSpeedA(getRandomNumberA());
-      motors_speed.setSpeedsLR(getRandomNumberLR(), getRandomNumberLR());
+      ran1 = getRandomNumberLR();
+      ran2 = getRandomNumberLR();
+      motors_speed.setStupidSpeedLR(ran1, ran2);
       motors_speed.mapSpeeds();
     }
 
@@ -259,7 +265,7 @@ void loop() {
       Serial.print(String("\nL") + motors_speed.getSpeedL() + "R" + motors_speed.getSpeedR() + "A" + motors_speed.getSpeedA());
       Serial.flush();
       // to make sure that after sending data, the data is equal to 0
-      motors_speed.setZeroSpeed();
+      // motors_speed.setZeroSpeed();
     }
   }
 

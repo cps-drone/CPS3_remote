@@ -4,6 +4,11 @@ void MotorsSpeed::setSpeedA(int StickLeftV_value) {
     SpeedA = StickLeftV_value;
 }
 
+void MotorsSpeed::setStupidSpeedLR(int ran1, int ran2) {
+    SpeedL = ran1;
+    SpeedR = ran2;
+}
+
 void MotorsSpeed::setSpeedsLR(int StickLeftH_value, int StickRightV_value) {
     if (StickRightV_value > 5 && StickRightV_value <= 45) { // Slowly moving forward
         if (StickLeftH_value < -5) { // Turning left

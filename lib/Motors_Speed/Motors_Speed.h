@@ -28,6 +28,8 @@ public:
     //Method to set SpeedL and SpeedR based on StickLeftH_value and StickRightV_value
     void setSpeedsLR(int StickLeftH_value, int StickRightV_value);
 
+    void setStupidSpeedLR(int ran1, int ran2);
+
     //Method to set 0 speed to all motors
     void setZeroSpeed();
 

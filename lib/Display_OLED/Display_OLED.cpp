@@ -100,11 +100,6 @@ void update_display() {
             display.print(String("  2S voltage: ") + DroneVoltage2 + "V  ");  
         }
 
-        if (digitalRead(Button2) == LOW && connectionFlag == true) {
-            display.println(" Drone temperature");
-            display.println(String("       ") + DroneTemperature + "C");
-        }
-
         // Display StickRightH_value and StickRightV_value if StickRightB is LOW
         if (digitalRead(StickRightB) == LOW) {
             display.setTextSize(1);
