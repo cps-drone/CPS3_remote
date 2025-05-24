@@ -131,50 +131,50 @@ void setup() {
   initBuzzer();
   Serial.begin(9600); //Set the baud rate for the serial communication
 
-  while (connectionFlag == false) {
-    currentTime = millis(); //Initialize the current time variable
-    if (currentTime - previousTime >= setupInterval) {
-      previousTime = currentTime;
-      digitalWrite(MasterEnable, HIGH);
-      Serial.print('Q');
-      Serial.flush();
-      digitalWrite(MasterEnable, LOW);
-      SwitchRight_state = digitalRead(SwitchRight);
-      flight_mode = SwitchRight_state;
-      SwitchLeft_state = digitalRead(SwitchLeft);
-      speed_mode = SwitchLeft_state;
-      if(flight_mode == ARMED){
-        BatteryVoltage = map(analogRead(BatterySensor), 0, 1023, 0, 500);
-        BatteryVoltage = BatteryVoltage/100;
-        calculate_batteries_percentage();
-      }
+  // while (connectionFlag == false) {
+  //   currentTime = millis(); //Initialize the current time variable
+  //   if (currentTime - previousTime >= setupInterval) {
+  //     previousTime = currentTime;
+  //     digitalWrite(MasterEnable, HIGH);
+  //     Serial.print('Q');
+  //     Serial.flush();
+  //     digitalWrite(MasterEnable, LOW);
+  //     SwitchRight_state = digitalRead(SwitchRight);
+  //     flight_mode = SwitchRight_state;
+  //     SwitchLeft_state = digitalRead(SwitchLeft);
+  //     speed_mode = SwitchLeft_state;
+  //     if(flight_mode == ARMED){
+  //       BatteryVoltage = map(analogRead(BatterySensor), 0, 1023, 0, 500);
+  //       BatteryVoltage = BatteryVoltage/100;
+  //       calculate_batteries_percentage();
+  //     }
 
-      if(flight_mode == DISARMED){
-        //Read the joystick values and map them to variables
-        StickLeftH_value = map(analogRead(StickLeftH), 0, 1023, -90, 90);
-        StickLeftV_value = map(analogRead(StickLeftV), 0, 1023, -90, 90);
-        StickRightH_value = map(analogRead(StickRightH), 0, 1023, -90, 90);
-        StickRightV_value = map(analogRead(StickRightV), 0, 1023, 90, -90);
-      }
+  //     if(flight_mode == DISARMED){
+  //       //Read the joystick values and map them to variables
+  //       StickLeftH_value = map(analogRead(StickLeftH), 0, 1023, -90, 90);
+  //       StickLeftV_value = map(analogRead(StickLeftV), 0, 1023, -90, 90);
+  //       StickRightH_value = map(analogRead(StickRightH), 0, 1023, -90, 90);
+  //       StickRightV_value = map(analogRead(StickRightV), 0, 1023, 90, -90);
+  //     }
 
-      update_display();
+  //     update_display();
 
-      if(digitalRead(Button1) == LOW && digitalRead(Button2) == LOW) {
-        connectionFlag = true;
-      }
+  //     if(digitalRead(Button1) == LOW && digitalRead(Button2) == LOW) {
+  //       connectionFlag = true;
+  //     }
 
-      //Check if the drone is connected
-      if(Serial.available() > 0) {
-        char respond = Serial.read();
-        if (respond == 'C') {
-          connectionFlag = true;
+  //     //Check if the drone is connected
+  //     if(Serial.available() > 0) {
+  //       char respond = Serial.read();
+  //       if (respond == 'C') {
+  //         connectionFlag = true;
           
-          currentTime = 0;
-          previousTime = 0;
-        }
-      }
-    }
-  }
+  //         currentTime = 0;
+  //         previousTime = 0;
+  //       }
+  //     }
+  //   }
+  // }
 }
 
 void loop() {
