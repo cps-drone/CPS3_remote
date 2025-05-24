@@ -37,7 +37,6 @@ int StickLeftH_value, StickLeftV_value, StickRightH_value, StickRightV_value;
 float DroneVoltage1 = 0.00;
 float DroneVoltage2 = 0.00;
 float DroneVoltageTotal = 0.00;
-float DroneTemperature  = 0.00;
 int DroneBatteryPercent = 0;
 int RemoteBatteryPercent = 0;
 
@@ -97,19 +96,15 @@ void receive_measurement_data() {
         //Looking for the indexes of the battery voltage and temperature data
         int bat1sIndex = data.indexOf("BAT1S");
         int bat2sIndex = data.indexOf("BAT2S");
-        int tempIndex = data.indexOf("TEMP");
-
         //Confirm that all the data is present
-        if (bat1sIndex != -1 && bat2sIndex != -1 && tempIndex != -1) {
+        if (bat1sIndex != -1 && bat2sIndex != -1) {
             //Extract the values from the data
-            String bat1sValue = data.substring(bat1sIndex + 5, bat2sIndex);
-            String bat2sValue = data.substring(bat2sIndex + 5, tempIndex);  
-            String tempValue = data.substring(tempIndex + 4);             
+            String bat1sValue = data.substring(bat1sIndex + 5, ',');
+            String bat2sValue = data.substring(bat2sIndex + 5, ',');  
 
             //Convert the values to floats
             DroneVoltage1 = bat1sValue.toFloat();
             DroneVoltage2 = bat2sValue.toFloat();
-            DroneTemperature = tempValue.toFloat();
         }
     }
 }

@@ -17,7 +17,6 @@ extern bool speed_mode;
 extern float DroneVoltage1;
 extern float DroneVoltage2;
 extern float DroneVoltageTotal;
-extern float DroneTemperature;
 extern int RemoteBatteryPercent;
 extern int DroneBatteryPercent;
 extern int StickRightH_value;
