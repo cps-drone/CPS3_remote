@@ -76,26 +76,24 @@ void update_display() {
     (flight_mode == ARMED) ? display.println(F("   ARMED")) : display.println(F(" DISARMED"));
 
     display.setTextSize(1);
-    if (speed_mode == LOW && flight_mode == ARMED && connectionFlag == true && connectionDisplayCtr > 50) {
-        display.println(F("      Speed:LOW"));
-    } else if (speed_mode == HIGH && flight_mode == ARMED && connectionFlag == true && connectionDisplayCtr > 50) {
-        display.println(F("     Speed: HIGH"));
-    }
-    else if (connectionFlag == false) {
-        display.println(F("     Connecting..."));
-    }
-    else if (connectionFlag == true && connectionDisplayCtr <= 50) {
-        display.println("      Connected");    
+
+    if(firstMeasurementFlag == false){
+        display.println(F("  Waiting for drone\n voltage measurement"));
+        display.display();
     }
 
-    
+    if (speed_mode == LOW && flight_mode == ARMED) {
+        display.println(F("      Speed:LOW"));
+    } else if (speed_mode == HIGH && flight_mode == ARMED) {
+        display.println(F("     Speed: HIGH"));
+    }
+   
     if (flight_mode == ARMED) {
         display.println(String("Remote battery: ") + RemoteBatteryPercent + "%");
     }
 
-
     if(flight_mode == DISARMED){
-        if (digitalRead(Button1) == LOW && connectionFlag == true) {
+        if (digitalRead(Button1) == LOW) {
             display.println(String("  1S voltage: ") + DroneVoltage1 + "V");
             display.print(String("  2S voltage: ") + DroneVoltage2 + "V  ");  
         }
@@ -122,10 +120,10 @@ void update_display() {
         }
 
         else {
-            if(connectionFlag == true){
+            // if(connectionFlag == true){
                 display.println(String("Drone voltage: ") + DroneVoltageTotal + "V");
                 display.println(String("  Drone state: ") + DroneBatteryPercent + "%");
-            }
+            // }
         }
     }
 

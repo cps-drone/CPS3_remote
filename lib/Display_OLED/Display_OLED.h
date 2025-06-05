@@ -28,10 +28,12 @@ extern bool motorDirectionL;
 extern bool motorDirectionR;
 extern bool connectionFlag;
 extern uint8_t connectionDisplayCtr;
+extern bool firstMeasurementFlag;
 
 extern void receive_measurement_data();
 
 void init_display();
 void update_display();
+
 
 #endif

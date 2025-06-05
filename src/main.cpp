@@ -19,16 +19,15 @@ MotorsSpeed motors_speed; //Motors speed object
 //time counter variables for refreshing stuff at intervals:
 unsigned long previousTime = 0; //Timer variables
 const long setupInterval = 100; //Time interval
-const long loopInterval = 1000; //Time interval
+const long remote_voltage_measuring_interval = 2000; //Time interval
 unsigned long currentTime = 0; //Current time
 
 unsigned long previousSendTime = 0; //Timer variables
 const long sendingInterval = 100; //Time interval
 unsigned long currentSendTime = 100; //Current time
 
-bool connectionFlag = false; //Flag to check if the drone is connected
-uint8_t connectionDisplayCtr = 0;
 bool firstMeasurementFlag = false; //Flag to check if the first measurement is received
+uint8_t firstMeasurementCounter = 0; //Counter for the first measurement
 
 //Sensor value variable declarations:
 int StickLeftH_value, StickLeftV_value, StickRightH_value, StickRightV_value;
@@ -84,8 +83,6 @@ void calculate_batteries_percentage() {
   else if (RemoteBatteryPercent > 100) {
     RemoteBatteryPercent = 100;
   }
-  
-  
 }
   
 //Function to receive measurement data
@@ -129,64 +126,28 @@ void setup() {
   //Display initialization
   init_display();
   initBuzzer();
-  Serial.begin(9600); //Set the baud rate for the serial communication
+  Serial.begin(9600); //Set the baud rate for the serial communication  
 
-  // while (connectionFlag == false) {
-  //   currentTime = millis(); //Initialize the current time variable
-  //   if (currentTime - previousTime >= setupInterval) {
-  //     previousTime = currentTime;
-  //     digitalWrite(MasterEnable, HIGH);
-  //     Serial.print('Q');
-  //     Serial.flush();
-  //     digitalWrite(MasterEnable, LOW);
-  //     SwitchRight_state = digitalRead(SwitchRight);
-  //     flight_mode = SwitchRight_state;
-  //     SwitchLeft_state = digitalRead(SwitchLeft);
-  //     speed_mode = SwitchLeft_state;
-  //     if(flight_mode == ARMED){
-  //       BatteryVoltage = map(analogRead(BatterySensor), 0, 1023, 0, 500);
-  //       BatteryVoltage = BatteryVoltage/100;
-  //       calculate_batteries_percentage();
-  //     }
 
-  //     if(flight_mode == DISARMED){
-  //       //Read the joystick values and map them to variables
-  //       StickLeftH_value = map(analogRead(StickLeftH), 0, 1023, -90, 90);
-  //       StickLeftV_value = map(analogRead(StickLeftV), 0, 1023, -90, 90);
-  //       StickRightH_value = map(analogRead(StickRightH), 0, 1023, -90, 90);
-  //       StickRightV_value = map(analogRead(StickRightV), 0, 1023, 90, -90);
-  //     }
-
-  //     update_display();
-
-  //     if(digitalRead(Button1) == LOW && digitalRead(Button2) == LOW) {
-  //       connectionFlag = true;
-  //     }
-
-  //     //Check if the drone is connected
-  //     if(Serial.available() > 0) {
-  //       char respond = Serial.read();
-  //       if (respond == 'C') {
-  //         connectionFlag = true;
-          
-  //         currentTime = 0;
-  //         previousTime = 0;
-  //       }
-  //     }
-  //   }
-  // }
+  while(firstMeasurementFlag == false){
+    digitalWrite(MasterEnable, HIGH);
+    Serial.print("d\n");
+    Serial.flush();
+    digitalWrite(MasterEnable, LOW);
+    delay(50);
+    receive_measurement_data();
+    DroneVoltageTotal = DroneVoltage1 + DroneVoltage2;
+    update_display();
+    if(DroneVoltageTotal != 0.00){
+      firstMeasurementFlag = true;
+    }
+  }
 }
 
 void loop() {
 
-  if (connectionDisplayCtr <= 50){
-    connectionDisplayCtr++;
-    receive_measurement_data();
-    DroneVoltageTotal = DroneVoltage1 + DroneVoltage2;
-  }
-
   //Read the battery voltage and save it to proper variable every interval
-  if (currentTime - previousTime >= loopInterval) {
+  if (currentTime - previousTime >= remote_voltage_measuring_interval) {
     previousTime = currentTime;
     BatteryVoltage = map(analogRead(BatterySensor), 0, 1023, 0, 500);
     BatteryVoltage = BatteryVoltage/100;
@@ -203,12 +164,9 @@ void loop() {
   StickRightH_value = map(analogRead(StickRightH), 0, 1023, -90, 90);
   StickRightV_value = map(analogRead(StickRightV), 0, 1023, 90, -90);
   
-
   //Read the switches and map them to variables
-  SwitchRight_state = digitalRead(SwitchRight);
-  (firstMeasurementFlag == false) ? flight_mode = DISARMED : flight_mode = SwitchRight_state;
-  SwitchLeft_state = digitalRead(SwitchLeft);
-  speed_mode = SwitchLeft_state;
+  flight_mode = digitalRead(SwitchRight);
+  speed_mode = digitalRead(SwitchLeft);
 
   //Send calculated motors speeds to the drone if it's armed
   if (flight_mode == ARMED) { 
@@ -249,20 +207,21 @@ void loop() {
     digitalWrite(MasterEnable, HIGH);
     Serial.print("d\n");
     Serial.flush();
-
     digitalWrite(MasterEnable, LOW);
     receive_measurement_data();
     DroneVoltageTotal = DroneVoltage1 + DroneVoltage2;
-    if(DroneVoltageTotal != 0.00){
-      firstMeasurementFlag = true;
-    }
     update_display();
-    delay(50);
   }
 
-  if((DroneVoltage1 < 3.1 || DroneVoltage2 < 3.1 || RemoteBatteryPercent < 20) && connectionFlag == true && connectionDisplayCtr > 50 && firstMeasurementFlag == true) {
-    toggleBuzzerNonBlocking();
-  } else {
-    disableBuzzer();
+  if(firstMeasurementFlag == true){
+    if(DroneVoltage1 < 3.1 || DroneVoltage2 < 3.1 || RemoteBatteryPercent < 10) {
+      firstMeasurementCounter++;
+      if (firstMeasurementCounter > 10){
+        toggleBuzzerNonBlocking();
+      }
+    } 
+    else {
+      disableBuzzer();
+    }
   }
 }
