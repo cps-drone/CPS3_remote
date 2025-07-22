@@ -3,53 +3,44 @@
 #include <Arduino.h>
 #include "Buzzer.h"
 
-// Pin buzzera
-#define Buzzer 3
-
-// Zmienna do przechowywania identyfikatora kanału PWM
-int pwmChannel;
-
-// Zmienna do sterowania stanem buzzera
-bool buzzerState = false;
-
-// Czas ostatniej zmiany stanu buzzera
-unsigned long previousMillis = 0;
-
-// Interwał włączenia/wyłączenia buzzera (1 sekunda)
-const unsigned long interval = 1000;
-
-void initBuzzer() {
-    // Inicjalizacja biblioteki PWM
+void buzzer_init(buzzer_t *buzzer, int pin, int frequency) {
+    // Initialize the buzzer pin and set the frequency
     InitTimersSafe();
-    // Ustaw częstotliwość PWM na 2,3 kHz
-    pwmChannel = SetPinFrequencySafe(Buzzer, 2300);
+    /*
+        * Set the PWM frequency to 2300 Hz.
+        * This frequency was tested and works well with the buzzer in the remote.
+    */
+   
+    buzzer->pin = BUZZER_PIN;
+    buzzer->currentMillis = millis();
+    buzzer->previousMillis = 0;
+    buzzer->interval = BUZZER_INTERVAL;
+    buzzer->pwmChannel = SetPinFrequencySafe(buzzer->pin, 2300);
 
-    // Wyłącz buzzer na start
-    pwmWrite(Buzzer, 0);
+    // Set the initial state of the buzzer to off
+    pwmWrite(buzzer->pin, 0);
 }
 
+void buzzerToggle(buzzer_t *buzzer) {
 
-void toggleBuzzerNonBlocking() {
-    unsigned long currentMillis = millis();
-
-    // Sprawdź, czy nadszedł czas na zmianę stanu buzzera
-    if (currentMillis - previousMillis >= interval) {
-        previousMillis = currentMillis; // Zaktualizuj czas ostatniej zmiany
-
-        // Zmień stan buzzera
-        buzzerState = !buzzerState;
-
-        if (buzzerState) {
-            // Włącz buzzer z wypełnieniem 50%
-            pwmWrite(Buzzer, 128); // 128 to 50% wypełnienia (zakres 0-255)
+    // Check if the interval has passed
+    if (buzzer->currentMillis - buzzer->previousMillis >= buzzer->interval) {
+        buzzer->previousMillis = buzzer->currentMillis; // Reload the previousMillis with the current time
+ 
+        if (buzzer->state == true) {
+            // Turn on the buzzer with 50% duty cycle
+            pwmWrite(buzzer->pin, 128); // 128 is 50% duty cycle (0-255 range)
         } else {
-            // Wyłącz buzzer
-            pwmWrite(Buzzer, 0);
+            // Turn off the buzzer
+            pwmWrite(buzzer->pin, 0);
         }
+        
+        // Toggle the buzzer state
+        buzzer->state = !buzzer->state;
     }
 }
 
-void disableBuzzer() {
-    // Wyłącz buzzer
-    pwmWrite(Buzzer, 0);
+void buzzerDisable(buzzer_t *buzzer) {
+    // Turn off the buzzer
+    pwmWrite(buzzer->pin, 0);
 }
