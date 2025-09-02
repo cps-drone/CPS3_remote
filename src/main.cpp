@@ -23,12 +23,12 @@ const long loopInterval = 1000; //Time interval
 unsigned long currentTime = 0; //Current time
 
 unsigned long previousSendTime = 0; //Timer variables
-const long sendingInterval = 100; //Time interval
+const long sendingInterval = 50; //Time interval
 unsigned long currentSendTime = 100; //Current time
 
 unsigned long previousChangeTime = 0; //Timer variables
 const long changeInterval = 3000; //Time interval
-unsigned long currentChangeTime = 100; //Current time
+unsigned long currentChangeTime = 0; //Current time
 
 bool connectionFlag = false; //Flag to check if the drone is connected
 uint8_t connectionDisplayCtr = 0;
@@ -64,7 +64,7 @@ bool motorDirectionA = false;
 bool motorDirectionL = false;
 bool motorDirectionR = false;
 
-
+int ran0 = 0;
 int ran1 = 0;
 int ran2 = 0;
 
@@ -118,11 +118,11 @@ void receive_measurement_data() {
 }
 
 int getRandomNumberLR() {
-  return random(-88, 88);
+  return random(-80, 80);
 }
 
 int getRandomNumberA() {
-  return random(-88, 30);
+  return random(-80, 30);
 }
 
 void setup() {
@@ -191,6 +191,7 @@ void setup() {
       }
     }
   }
+  delay(7000);
 }
 
 void loop() {
@@ -231,11 +232,9 @@ void loop() {
 
     if(currentChangeTime - previousChangeTime > changeInterval) {
       previousChangeTime = currentChangeTime;
-      motors_speed.setSpeedA(getRandomNumberA());
+      ran0 = getRandomNumberA();
       ran1 = getRandomNumberLR();
       ran2 = getRandomNumberLR();
-      motors_speed.setStupidSpeedLR(ran1, ran2);
-      motors_speed.mapSpeeds();
     }
 
     if (currentSendTime - previousSendTime >= sendingInterval) {
@@ -249,6 +248,9 @@ void loop() {
 
       // motors_speed.mapSpeeds();
 
+      motors_speed.setSpeedA(ran0);
+      motors_speed.setStupidSpeedLR(ran1, ran2);
+      motors_speed.mapSpeeds();
       // //Set the speeds of the motors based on the joystick values
       if(motorDirectionA == true){
         motors_speed.InvertMotorAdirection();
@@ -286,7 +288,7 @@ void loop() {
   }
 
   if((DroneVoltage1 < 3.1 || DroneVoltage2 < 3.1 || RemoteBatteryPercent < 20) && connectionFlag == true && connectionDisplayCtr > 50 && firstMeasurementFlag == true) {
-    toggleBuzzerNonBlocking();
+    //toggleBuzzerNonBlocking();
   } else {
     disableBuzzer();
   }
