@@ -27,6 +27,8 @@ void setup() {
   remote_init(&Remote); // Initialize the remote struct object
   buzzer_init(&Buzzer, BUZZER_PIN, BUZZER_FREQUENCY); // Initialize the buzzer struct object
   display_init(&Display);       // Initialize the OLED display
+  CPS3.gripper.command = STOP; // Set the initial gripper command to STOP
+  CPS3.gripper.enabled = false; // Set the initial gripper enabled state to false
   CPS3.master_mode = RS485_MASTER_MODE; // Set the CPS3 drone to RS485 slave mode
 }
 
@@ -47,7 +49,9 @@ void loop() {
   reset_buttons_states(&Remote); //Reset the buttons states
   buttons_module_read(&Remote); //Read the remote buttons only
 
-  while (Remote.Buttons.Button2_state == PRESSED){
+  gripper_steering(&CPS3, &Remote);
+
+  while (Remote.Buttons.Button2_state == PRESSED && CPS3.gripper.enabled == false){
     display_test_mode(&Display, &Remote); //Display the test mode on the OLED screen
     Display.display(); // Ensure the display is updated
 
@@ -72,18 +76,19 @@ void loop() {
       Display.display(); // Ensure the display is updated
     }
   }
-
+  toggle_LEDs(&CPS3);
   display_switch_voltage_menu();
   update_display(&Display, &Remote, &CPS3);  //Display data on the OLED screen
   set_cps3_flight_mode(&CPS3, &Remote); //Set the flight mode based on the left switch state
 
       // Read the joystick, switches and buttons values from the remote
   remote_read(&Remote);
+  
   set_cps3_motors_speed(&CPS3, &Remote); //Set the speed mode based on the right switch state
 
   //Remote.previousSendTime = Remote.currentSendTime; //Update the previous time variable
   if(CPS3.master_mode == RS485_SLAVE_MODE) {
-    send_cps3_motors_speed(&Remote, &CPS3); //Send the data to the drone
+    send_to_cps3(&Remote, &CPS3); //Send the data to the drone
   } 
   else if(CPS3.master_mode == RS485_MASTER_MODE) {
     get_cps3_battery_state(&CPS3); //Get the battery state of the CPS3 drone

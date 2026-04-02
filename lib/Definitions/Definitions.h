@@ -67,11 +67,11 @@
 #define MIN_SPEED 40        // Minimum speed of the motor (in HIGH speed mode)
 
 //Intervals, time constants
-#define DEBOUNCE 200 // Button debounce time in milliseconds
+#define DEBOUNCE 100 // Button debounce time in milliseconds
 #define BUZZER_INTERVAL 500 // Buzzer toggling interval in miliseconds
 
 //Low voltage warning values
 #define REMOTE_LOW_VOLTAGE_WARNING 3.0 // Remote low voltage warning, buzzer will start beeping if the voltage is below that value
-#define CPS3_LOW_VOLTAGE_WARNING 5.4 // CPS3 drone low voltage warning, buzzer will start beeping if voltage is below that value
+#define CPS3_LOW_VOLTAGE_WARNING 6.2 // CPS3 drone low voltage warning, buzzer will start beeping if voltage is below that value
 
 #endif

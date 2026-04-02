@@ -61,7 +61,7 @@ void joystick_read(remote_t *remote){
     remote->JoystickLeft.StickB_state = digitalRead(STICK_LEFT_B_PIN);
 
     remote->JoystickRight.StickH_value = map(analogRead(STICK_RIGHT_H_PIN), 0, 1023, -90, 90);
-    remote->JoystickRight.StickV_value = map(analogRead(STICK_RIGHT_V_PIN), 0, 1023, -90, 90);
+    remote->JoystickRight.StickV_value = map(analogRead(STICK_RIGHT_V_PIN), 0, 1023, 90, -90);
     remote->JoystickRight.StickB_state = digitalRead(STICK_RIGHT_B_PIN);
 }
 

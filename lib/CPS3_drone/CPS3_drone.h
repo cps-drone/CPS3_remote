@@ -16,8 +16,7 @@
     * lowVoltageFlag is a boolean value that indicates if the battery voltage is low.
 */
 typedef struct drone_battery_s {
-    float Voltage1S; // Battery voltage 1S in V
-    float Voltage2S; // Battery voltage 2S in V
+    float Voltage; // Battery voltage 2S in V
     float VoltageTotal; // Total battery voltage in V
     int Percentage; // Battery percentage
     bool firstMeasurementFlag; // Flag to indicate if the first measurement has been taken
@@ -38,6 +37,19 @@ typedef struct motor_s {
     bool InvertedFlag; // Direction of the motor
 } motors_t;
 
+typedef enum command_e {
+    CLOSE = 0,
+    STOP = 1,
+    OPEN = 2
+}command_t;
+
+
+typedef struct gripper_s{
+    bool enabled;
+    command_t command;
+}gripper_t;
+
+
 /* 
     * CPS3 drone structure
     * It contains the drone battery, motors and flight mode
@@ -46,16 +58,21 @@ typedef struct motor_s {
 */ 
 typedef struct cps3_s {
     drone_battery_t DroneBattery;
+    gripper_t gripper; // Gripper structure
     motors_t MotorA; // Vertical motor
     motors_t MotorL; // Left motor
     motors_t MotorR; // Right motor
     bool FlightMode; // Flight mode of the drone (ARMED or DISARMED)
     bool master_mode; // RS485 master mode
+    bool LEDs_flag; // Flag to toggle the LEDs on the drone
 } cps3_t;
 
 /*
     *Functions prototypes for CPS3 drone operations
 */
+
+void gripper_steering(cps3_t *cps3, remote_t *remote);
+
 
 // Function that initialize the CPS3 drone structure
 void cps3_init(cps3_t *cps3);
@@ -87,7 +104,7 @@ void set_cps3_motors_stopped(cps3_t *cps3);
 void set_cps3_motors_speed(cps3_t *cps3, remote_t *remote);
 
 // Function that sends the motors speed to the CPS3 drone
-void send_cps3_motors_speed(remote_t *remote, cps3_t *cps3);
+void send_to_cps3(remote_t *remote, cps3_t *cps3);
 
 // Fuction that set CPS3 drone flag into master mode
 void set_cps3_as_master(cps3_t *cps3);

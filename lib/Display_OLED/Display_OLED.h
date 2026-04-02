@@ -23,11 +23,17 @@ void display_init(Adafruit_SSD1306 *display);
     * 1 - Remote battery percentage
     * 2 - Remote battery volatage
     * 3 - Drone battery total voltage
-    * 4 - Drone battery 1S voltage
-    * 5 - Drone battery 2S voltage
     * To switch the menu, press and hold the Button1.
 */
 void display_switch_voltage_menu();
+
+/*
+    * Function that toggles the LEDs on the CPS3 drone,
+    * To toggle the LEDs, press and hold the Button4.
+    * While the Button4 is pressed, the message send 
+    * to the drone has the toggleLEDs flag set to true.
+*/
+void toggle_LEDs(cps3_t *cps3);
 
 /*
     * Function that updates the display with measurements,

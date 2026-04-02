@@ -7,8 +7,7 @@
 // Function to initialize the CPS3 drone structure
 void cps3_init(cps3_t *cps3){
     // Initialize drone battery
-    cps3->DroneBattery.Voltage1S = 0.0;
-    cps3->DroneBattery.Voltage2S = 0.0;
+    cps3->DroneBattery.Voltage = 0.0;
     cps3->DroneBattery.VoltageTotal = 0.0;
     cps3->DroneBattery.Percentage = 0;
     cps3->DroneBattery.lowVoltageFlag = false;
@@ -35,25 +34,23 @@ void get_cps3_battery_state(cps3_t *cps3) {
         // Read the data until newline character
         String data = Serial.readStringUntil('\n');
         // Looking for the indexes of the battery voltages data
-        int bat1sIndex = data.indexOf("O");
-        int bat2sIndex = data.indexOf("T");
+        int batIndex = data.indexOf("V");
         int masterModeIndex = data.indexOf("M");
 
 
         // If the data is present
-        if (bat1sIndex != -1 && bat2sIndex != -1 && masterModeIndex != -1) {
+        if (batIndex != -1 && masterModeIndex != -1) {
             //Extract the values from the data
-            String bat1sValue = data.substring(bat1sIndex + 1);
-            String bat2sValue = data.substring(bat2sIndex + 1);  
+            String batValue = data.substring(batIndex + 1);  
             String masterModeValue = data.substring(masterModeIndex + 1);
 
             //Convert the values to floats
-            cps3->DroneBattery.Voltage1S = bat1sValue.toFloat();
-            cps3->DroneBattery.Voltage2S = bat2sValue.toFloat();
+            cps3->DroneBattery.Voltage = batValue.toFloat();
             cps3->master_mode = (bool)masterModeValue.toInt();
         }
         // Calculate the total battery voltage
-        cps3->DroneBattery.VoltageTotal = cps3->DroneBattery.Voltage1S + cps3->DroneBattery.Voltage2S;
+        cps3->DroneBattery.VoltageTotal = cps3->DroneBattery.Voltage;
+
 
         // First drone battery measurement
         if(cps3->DroneBattery.VoltageTotal != 0.00 && cps3->DroneBattery.firstMeasurementFlag == false) {
@@ -121,6 +118,29 @@ void set_cps3_motors_direction(cps3_t *cps3) {
     }
 }
 
+
+// Function to control the gripper based on the remote control inputs
+void gripper_steering(cps3_t *cps3, remote_t *remote){
+    if (remote->Buttons.Button3_state == PRESSED){
+        cps3->gripper.enabled = !cps3->gripper.enabled; // Toggle the gripper enabled state
+    }
+    if (remote->Buttons.Button2_state == PRESSED){
+        if(cps3->gripper.enabled) {
+            cps3->gripper.command = CLOSE; // Set the gripper command to OPEN
+        }
+    }
+    else if (remote->Buttons.Button4_state == PRESSED){
+        if(cps3->gripper.enabled) {
+            cps3->gripper.command = OPEN; // Set the gripper command to CLOSE
+        }
+    }
+    if(remote->Buttons.Button4_state == IDLE && remote->Buttons.Button2_state == IDLE){
+        cps3->gripper.command = STOP; // Set the gripper command to STOP
+        }
+    }
+
+
+    
 /*
     * Function to set the speed of the motors based on the remote control inputs.
     * It also uses the set_cps3_speed_mode and set_cps3_motors_direction functions,
@@ -221,14 +241,14 @@ void set_cps3_as_master(cps3_t *cps3){
     cps3->master_mode = RS485_MASTER_MODE; // Set CPS3 drone to master mode
 }
 
-void send_cps3_motors_speed(remote_t *remote, cps3_t *cps3) {
+void send_to_cps3(remote_t *remote, cps3_t *cps3) {
     digitalWrite(RS_MASTER_ENABLE_PIN, HIGH); // Enable RS485 master
     set_cps3_as_master(cps3); // Set CPS3 drone as master
     if(cps3->FlightMode == ARMED){
-        Serial.println(String("L") + cps3->MotorL.Speed + "R" + cps3->MotorR.Speed + "A" + cps3->MotorA.Speed + "M" + cps3->master_mode);
+        Serial.println(String("L") + cps3->MotorL.Speed + "R" + cps3->MotorR.Speed + "A" + cps3->MotorA.Speed + "M" + cps3->master_mode + "l" + cps3->LEDs_flag + "G" + cps3->gripper.command);
     }
     else{
-        Serial.println(String("L") + DISABLED_SPEED + "R" + DISABLED_SPEED + "A" + DISABLED_SPEED + "M" + cps3->master_mode);
+        Serial.println(String("L") + DISABLED_SPEED + "R" + DISABLED_SPEED + "A" + DISABLED_SPEED + "M" + cps3->master_mode + "l" + cps3->LEDs_flag + "G" + cps3->gripper.command);
     }
     Serial.flush();
     digitalWrite(RS_MASTER_ENABLE_PIN, LOW);

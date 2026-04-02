@@ -105,12 +105,19 @@ void display_switch_voltage_menu() {
     if (digitalRead(BUTTON1) == LOW) {
         delay(DEBOUNCE); 
         uint8_t currentMenuValue = EEPROM.read(EEPROM_ADDR_VOLTAGE_MENU);
-        if (currentMenuValue >= 0 && currentMenuValue < 5) {
+        if (currentMenuValue >= 0 && currentMenuValue < 3) {
             currentMenuValue++;     // increment menu variable
         } else {
-            currentMenuValue = 0;   // if menu variable is > 5 set it to 0
+            currentMenuValue = 0;   // if menu variable is > 3 set it to 0
         }
         EEPROM.update(EEPROM_ADDR_VOLTAGE_MENU, currentMenuValue);
+    }
+}
+
+void toggle_LEDs(cps3_t *cps3) {
+    if (digitalRead(BUTTON4) == LOW && cps3->gripper.enabled == false) {
+        //delay(50); 
+        cps3->LEDs_flag = !cps3->LEDs_flag; // Toggle the LEDs flag
     }
 }
 
@@ -131,11 +138,22 @@ void update_display(Adafruit_SSD1306 *display, remote_t *remote, cps3_t *cps3) {
     else {
         if(cps3->FlightMode == DISARMED) {
             display->setTextSize(2);
-            display->println(" DISARMED");
+            if (cps3->gripper.enabled == false){
+                display->println(" DISARMED");
+            }
+            else{
+                display->println("DISARMED G");
+            }
+            
         }
         else {
             display->setTextSize(2);
-            display->println(F("   ARMED"));
+            if (cps3->gripper.enabled == false){
+                display->println(F("   ARMED"));
+            }
+            else{
+                display->println(F(" ARMED  G"));
+            }
             display->setTextSize(1);
             if(remote->SwitchLeft_state == HIGH){
                 display->println(F("     Speed: HIGH"));
@@ -166,18 +184,6 @@ void update_display(Adafruit_SSD1306 *display, remote_t *remote, cps3_t *cps3) {
             case 3:
                 display->print(F(" Drone Voltage: "));
                 display->print(cps3->DroneBattery.VoltageTotal, 2);
-                display->println(F("V"));
-                break;
-
-            case 4: // Display 1S
-                display->print(F("   Drone 1S: "));
-                display->print(cps3->DroneBattery.Voltage1S, 2);
-                display->println(F("V"));
-                break;
-
-            case 5:
-                display->print(F("   Drone 2S: "));
-                display->print(cps3->DroneBattery.Voltage2S, 2);
                 display->println(F("V"));
                 break;
 
