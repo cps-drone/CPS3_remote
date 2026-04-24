@@ -1,4 +1,5 @@
 #include "CPS3_drone.h"
+
 /*
     * This file contains the bodies of the fuctions from file CPS_drone.h
     * It includes the initialization of the CPS3 drone structure, getting the battery state,
@@ -7,7 +8,6 @@
 // Function to initialize the CPS3 drone structure
 void cps3_init(cps3_t *cps3){
     // Initialize drone battery
-    cps3->DroneBattery.Voltage = 0.0;
     cps3->DroneBattery.VoltageTotal = 0.0;
     cps3->DroneBattery.Percentage = 0;
     cps3->DroneBattery.lowVoltageFlag = false;
@@ -27,43 +27,44 @@ void cps3_init(cps3_t *cps3){
 }
 // Function to get the battery state of the CPS3 drone
 void get_cps3_battery_state(cps3_t *cps3) {
-    // Wait for the drone to respond
+    // Set RS485 to receive mode
     digitalWrite(RS_MASTER_ENABLE_PIN, LOW);
-    // Read the data from the drone
-    if (Serial.available() > 0) {
-        // Read the data until newline character
-        String data = Serial.readStringUntil('\n');
-        // Looking for the indexes of the battery voltages data
-        int batIndex = data.indexOf("V");
-        int masterModeIndex = data.indexOf("M");
+    delay(RS485_SWITCH_DELAY); // Delay to allow the MAX485 to switch to receive mode
+    char buffer[6]; // Buffer to store the incoming message (5 characters + null terminator)
+    int index = 0;  // Index to track the position in the buffer
+    unsigned long startTime = millis(); // Start the timer
 
-
-        // If the data is present
-        if (batIndex != -1 && masterModeIndex != -1) {
-            //Extract the values from the data
-            String batValue = data.substring(batIndex + 1);  
-            String masterModeValue = data.substring(masterModeIndex + 1);
-
-            //Convert the values to floats
-            cps3->DroneBattery.Voltage = batValue.toFloat();
-            cps3->master_mode = (bool)masterModeValue.toInt();
+    // Wait for data with a timeout of 20 ms
+    while (millis() - startTime < 20) {
+        if (Serial.available() > 0) {
+            char incomingByte = Serial.read(); // Read one byte from the serial buffer
+            // Store the byte in the buffer if there's space
+            if (index < 5) {
+                buffer[index++] = incomingByte;
+            }
+            // Stop reading if the message ends with 'E'
+            if (incomingByte == 'E') {
+                break;
+            }
         }
-        // Calculate the total battery voltage
-        cps3->DroneBattery.VoltageTotal = cps3->DroneBattery.Voltage;
-
-
-        // First drone battery measurement
-        if(cps3->DroneBattery.VoltageTotal != 0.00 && cps3->DroneBattery.firstMeasurementFlag == false) {
-            cps3->DroneBattery.firstMeasurementFlag = true; // Set the first measurement flag to true
+    }
+    buffer[index] = '\0';     // Null-terminate the buffer to make it a valid string
+    Serial.print("Received battery message: ");
+    Serial.println(buffer); // Print the received message for debugging
+    if (buffer[0] == 'V') {         // Check if the message starts with 'V'
+        cps3->DroneBattery.VoltageTotal = atof(&buffer[1]);        // Convert the substring after 'V' to a float
+        // If this is the first valid voltage measurement, set the flag
+        if (cps3->DroneBattery.VoltageTotal != 0.00 && !cps3->DroneBattery.firstMeasurementFlag) {
+            cps3->DroneBattery.firstMeasurementFlag = true;
         }
-
-        // Calculate the battery percentage
-        cps3->DroneBattery.Percentage = map((int)(cps3->DroneBattery.VoltageTotal * 100), 600, 840, 0, 100);
-        digitalWrite(RS_MASTER_ENABLE_PIN, HIGH); // Enable RS485 master
+        cps3->DroneBattery.Percentage = map(            // Calculate the battery percentage based on the voltage range
+            (int)(cps3->DroneBattery.VoltageTotal * 100), // Convert voltage to an integer for mapping
+            600, 840,                                    // Map range: 6.00V to 8.40V
+            0, 100                                       // Output range: 0% to 100%
+        );
     }
-    else{
-        return;
-    }
+    
+    digitalWrite(RS_MASTER_ENABLE_PIN, HIGH);
 }
 
 // Fuction only for set_cps3_motors_speed
@@ -93,6 +94,7 @@ void set_cps3_flight_mode(cps3_t *cps3, remote_t *remote){
     } else {
         cps3->FlightMode = false; // Switch right is OFF, set flight mode to DISARMED
     }
+    !cps3->FlightMode ? set_cps3_motors_stopped(cps3) : void(); // If the flight mode is DISARMED, stop the motors
 }
 
 // Function to set the direction of the motors based on their inverted flags
@@ -237,20 +239,27 @@ void set_cps3_motors_stopped(cps3_t *cps3) {
     cps3->MotorR.Speed = 0;
 }
 
-void set_cps3_as_master(cps3_t *cps3){
-    cps3->master_mode = RS485_MASTER_MODE; // Set CPS3 drone to master mode
-}
 
 void send_to_cps3(remote_t *remote, cps3_t *cps3) {
-    digitalWrite(RS_MASTER_ENABLE_PIN, HIGH); // Enable RS485 master
-    set_cps3_as_master(cps3); // Set CPS3 drone as master
-    if(cps3->FlightMode == ARMED){
-        Serial.println(String("L") + cps3->MotorL.Speed + "R" + cps3->MotorR.Speed + "A" + cps3->MotorA.Speed + "M" + cps3->master_mode + "l" + cps3->LEDs_flag + "G" + cps3->gripper.command);
-    }
-    else{
-        Serial.println(String("L") + DISABLED_SPEED + "R" + DISABLED_SPEED + "A" + DISABLED_SPEED + "M" + cps3->master_mode + "l" + cps3->LEDs_flag + "G" + cps3->gripper.command);
-    }
-    Serial.flush();
-    digitalWrite(RS_MASTER_ENABLE_PIN, LOW);
+
+    digitalWrite(RS_MASTER_ENABLE_PIN, HIGH); // Set the RS485 transmission mode to master
+    delay(RS485_SWITCH_DELAY); // Wait to ensure the mode is switched before sending the message
+
+    // 
+    char send_message[MESSAGE_LENGTH + 1]; // +1 for character "null-terminator"
+    snprintf(send_message, MESSAGE_LENGTH + 1, "L%03dR%03dA%03dD%01dG%01dC%05dE", 
+             cps3->MotorL.Speed,    // 3 characters for MotorL.Speed
+             cps3->MotorR.Speed,    // 3 characters for MotorR.Speed
+             cps3->MotorA.Speed,    // 3 characters for MotorA.Speed
+             cps3->LEDs_flag,       // 2 characters for LEDs_flag
+             cps3->gripper.command, // 2 characters for gripper.command
+             00000);              // 5 characters to be customised
+                        
+
+    Serial.print(send_message); // Send the message to the drone
+    Serial.flush(); // Force to clear the serial buffer and wait for the transmission to complete
+    delay(RS485_SWITCH_DELAY); // Wait to ensure the message is fully sent before switching back to receive mode
+
+    digitalWrite(RS_MASTER_ENABLE_PIN, LOW); // Set RS485 to the receive mode
 }
 

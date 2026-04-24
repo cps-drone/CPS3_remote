@@ -53,9 +53,9 @@ typedef struct remote_s {
     bool MasterEnableState; // RS485 master enable state
 
     // Sending data timer
-    unsigned long currentSendTime; // Current time in milliseconds
-    unsigned long intervalSend; // sending interval in milliseconds
-    unsigned long previousSendTime; // Previous time in milliseconds for non-blocking timing
+    // unsigned long currentSendTime; // Current time in milliseconds
+    // unsigned long intervalSend; // sending interval in milliseconds
+    // unsigned long previousSendTime; // Previous time in milliseconds for non-blocking timing
 } remote_t;
 
 // Function prototypes

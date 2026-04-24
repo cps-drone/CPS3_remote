@@ -16,7 +16,6 @@
     * lowVoltageFlag is a boolean value that indicates if the battery voltage is low.
 */
 typedef struct drone_battery_s {
-    float Voltage; // Battery voltage 2S in V
     float VoltageTotal; // Total battery voltage in V
     int Percentage; // Battery percentage
     bool firstMeasurementFlag; // Flag to indicate if the first measurement has been taken
@@ -106,7 +105,5 @@ void set_cps3_motors_speed(cps3_t *cps3, remote_t *remote);
 // Function that sends the motors speed to the CPS3 drone
 void send_to_cps3(remote_t *remote, cps3_t *cps3);
 
-// Fuction that set CPS3 drone flag into master mode
-void set_cps3_as_master(cps3_t *cps3);
 
 #endif// CPS3_DRONE_H

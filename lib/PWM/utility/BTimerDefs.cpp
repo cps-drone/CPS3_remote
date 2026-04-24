@@ -23,8 +23,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "wiring_private.h"
 #include "../PWM.h"
 
+#ifndef UINT16_MAX
 #define UINT16_MAX 65535
+#endif
+#ifndef UINT8_MAX
 #define UINT8_MAX 255
+#endif
 
 //--------------------------------------------------------------------------------
 //							Helper Functions

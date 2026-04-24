@@ -25,14 +25,15 @@ void remote_init(remote_t *remote) {
     // Initialize battery voltage and percentage
     remote->Battery.voltage = 0.0f;
     remote->Battery.percents = 0;
+    remote->Battery.interval = 200;
 
     // Initialize RS485 master enable state
-    remote->MasterEnableState = false;
+    // remote->MasterEnableState = false;
 
     // Initialize timing variables
-    remote->currentSendTime = 0;
-    remote->intervalSend = 100; // Default interval for reading remote data
-    remote->previousSendTime = 0;
+    // remote->currentSendTime = 0;
+    // remote->intervalSend = 100; // Default interval for reading remote data
+    // remote->previousSendTime = 0;
 
     //Set the pins as inputs or outputs
     pinMode(SWITCH_RIGHT, INPUT);
@@ -52,7 +53,7 @@ void remote_init(remote_t *remote) {
     pinMode(REMOTE_BATTERY_SENSOR_PIN, INPUT);
 
     // Set the baud rate for the RS485 communication
-    Serial.begin(9600); //Set the baud rate for the serial communication  
+    Serial.begin(115200); //Set the baud rate for the serial communication  
 }
 
 void joystick_read(remote_t *remote){

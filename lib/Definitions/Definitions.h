@@ -38,6 +38,11 @@
 */
 #define RS_MASTER_ENABLE_PIN 2  
 
+// RS485 other constants
+#define RS485_SWITCH_DELAY 10   // MAX485 switching delay (w ms)
+#define MESSAGE_LENGTH 23       // Fixed length of the message to be send
+
+
 //RS485 MODES
 #define RS485_MASTER_MODE 1 // Mode for transmitting the data to the CPS3 drone.(Remote is a master)
 #define RS485_SLAVE_MODE 0  // Mode for receiving the data from the CPS3 drone. (Remote is a slave)

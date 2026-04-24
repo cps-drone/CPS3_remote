@@ -201,6 +201,6 @@ enum prescaler_alt
 #define Timer5_GetResolution()		GetResolution_16(TIMER5_OFFSET)
 
 #else
-	#error "ATimerDefs.h only supports ATMega640, ATMega1280, ATMega1281, ATMega2560, and ATMega2561"
+	#error "ATimerDefs.h only supports ATMega640, ATMega1280, ATMega1281, ATMega2560, and ATMega2561. Please define one of these microcontroller macros."
 #endif
 #endif /* ATIMERDEFS_H_ */
