@@ -78,15 +78,17 @@ void map_speeds(cps3_t *cps3) {
 }
 
 /*
-    * This function limits the speeds of the motors if the speed mode is set to LOW
-    * It only affects the Left and Right motors (MotorL and MotorR)
+    * This function limits the speeds of all three motors when the
+    * low-speed mode is selected by the left switch.
+    * Previously MotorA (vertical) was excluded, which made the vertical
+    * thruster ignore the low-speed mode entirely.
 */
 void set_cps3_speed_mode(cps3_t *cps3, remote_t *remote) {
     // Limit the speeds if speed mode is set to LOW
-    // only for Left and Right motors
     if(remote->SwitchLeft_state == LOW) {
         cps3->MotorL.Speed /= 2;
         cps3->MotorR.Speed /= 2;
+        cps3->MotorA.Speed /= 2;
     }
 }
 // Function to set the flight mode based on the right switch state
