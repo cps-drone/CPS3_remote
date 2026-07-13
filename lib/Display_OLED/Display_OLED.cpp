@@ -115,10 +115,18 @@ void display_switch_voltage_menu() {
 }
 
 void toggle_LEDs(cps3_t *cps3) {
-    if (digitalRead(BUTTON4) == LOW && cps3->gripper.enabled == false) {
-        //delay(50); 
+    bool button4_currentState = digitalRead(BUTTON4);
+
+    // Toggle once on the press edge (IDLE -> PRESSED), debounced with millis() instead of delay()
+    if (cps3->gripper.enabled == false &&
+        button4_currentState == PRESSED &&
+        cps3->button4_previousState == IDLE &&
+        (millis() - cps3->lastLEDToggleTime) > DEBOUNCE) {
         cps3->LEDs_flag = !cps3->LEDs_flag; // Toggle the LEDs flag
+        cps3->lastLEDToggleTime = millis();
     }
+
+    cps3->button4_previousState = button4_currentState;
 }
 
 void update_display(Adafruit_SSD1306 *display, remote_t *remote, cps3_t *cps3) {

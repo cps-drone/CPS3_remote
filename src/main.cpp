@@ -19,6 +19,7 @@ remote_t Remote;  // Remote struct object
 cps3_t CPS3;      // CPS3 drone struct object
 buzzer_t Buzzer;  // Buzzer struct object
 
+
 void setup() {
   /*
     * Initialize OLED display, CPS3 drone, remote and buzzer struct objects

@@ -9,6 +9,7 @@
 #include "Remote.h"
 #include "CPS3_drone.h"
 
+
 /*
     * Function that initializes the OLED diplay,
     * it also displays the CPS3 logo for 3 seconds.
@@ -29,9 +30,8 @@ void display_switch_voltage_menu();
 
 /*
     * Function that toggles the LEDs on the CPS3 drone,
-    * To toggle the LEDs, press and hold the Button4.
-    * While the Button4 is pressed, the message send 
-    * to the drone has the toggleLEDs flag set to true.
+    * a single press of Button4 flips the LEDs_flag (debounced via millis(), no delay()).
+    * Only active while the gripper is disabled.
 */
 void toggle_LEDs(cps3_t *cps3);
 

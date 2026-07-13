@@ -12,6 +12,9 @@ void cps3_init(cps3_t *cps3){
     cps3->DroneBattery.Percentage = 0;
     cps3->DroneBattery.lowVoltageFlag = false;
     cps3->DroneBattery.firstMeasurementFlag = false;
+    cps3->LEDs_flag = false;
+    cps3->button4_previousState = IDLE;
+    cps3->lastLEDToggleTime = 0;
     /*
         * Initialize motors
     */
@@ -247,7 +250,7 @@ void send_to_cps3(remote_t *remote, cps3_t *cps3) {
 
     // 
     char send_message[MESSAGE_LENGTH + 1]; // +1 for character "null-terminator"
-    snprintf(send_message, MESSAGE_LENGTH + 1, "L%03dR%03dA%03dD%01dG%01dC%05dE", 
+    snprintf(send_message, MESSAGE_LENGTH + 1, "L%03dR%03dA%03dD%01dG%03dC%05dE", 
              cps3->MotorL.Speed,    // 3 characters for MotorL.Speed
              cps3->MotorR.Speed,    // 3 characters for MotorR.Speed
              cps3->MotorA.Speed,    // 3 characters for MotorA.Speed

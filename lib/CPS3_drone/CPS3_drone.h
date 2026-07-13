@@ -37,9 +37,9 @@ typedef struct motor_s {
 } motors_t;
 
 typedef enum command_e {
-    CLOSE = 0,
-    STOP = 1,
-    OPEN = 2
+    CLOSE = 234,
+    STOP = 567,
+    OPEN = 890
 }command_t;
 
 
@@ -64,6 +64,8 @@ typedef struct cps3_s {
     bool FlightMode; // Flight mode of the drone (ARMED or DISARMED)
     bool master_mode; // RS485 master mode
     bool LEDs_flag; // Flag to toggle the LEDs on the drone
+    bool button4_previousState; // Previous raw BUTTON4 state, used to detect a press edge for LED toggling
+    unsigned long lastLEDToggleTime; // millis() timestamp of the last LED toggle, used for non-blocking debounce
 } cps3_t;
 
 /*

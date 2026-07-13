@@ -40,7 +40,7 @@
 
 // RS485 other constants
 #define RS485_SWITCH_DELAY 10   // MAX485 switching delay (w ms)
-#define MESSAGE_LENGTH 23       // Fixed length of the message to be send
+#define MESSAGE_LENGTH 25       // Fixed length of the message to be send
 
 
 //RS485 MODES
